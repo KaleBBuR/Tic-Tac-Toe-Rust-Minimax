@@ -27,7 +27,9 @@ struct Game {
     // Player Piece ('X' or 'O')
     player: char,
     // Bot Piece ('X' or 'O')
-    bot: char
+    bot: char,
+    // If bot is maximizing or minimizing
+    bot_maximizing: bool,
 
 }
 
@@ -41,6 +43,7 @@ impl Game {
             turn: Turn::Player,
             player: '-',
             bot: '-',
+            bot_maximizing: false,
         }
     }
 
@@ -112,6 +115,7 @@ impl Game {
                     self.player = chars[0];
 
                     self.turn = if self.player == 'X' { Turn::Player } else { Turn::Bot };
+                    self.bot_maximizing = self.player != 'X';
 
                     break;
                 }
@@ -293,56 +297,92 @@ impl Game {
     }
 
     fn evaluate(&self) -> i32 {
+
+        // This for loop evaluates the Columns, and Rows to see if anyone wins.
+        // It will return a negative or postive 10 based on who is maximizing, and minimizing.
         for index in 0..3 {
             if self.board[index][0] == self.board[index][1] && self.board[index][1] == self.board[index][2] && self.board[index][0] != '-' {
-                if self.board[index][1] == self.bot && self.bot == 'X' {
-                    return 10
-                } else if self.board[index][1] == self.bot && self.bot == 'O' {
+                if self.bot_maximizing {
+                    if self.board[index][1] == self.bot {
+                        return 10
+                    }
+
                     return -10
-                } else if self.board[index][1] == self.player && self.player == 'X' {
-                    return 10
                 } else {
-                    return -10
+                    if self.board[index][1] == self.bot {
+                        return -10
+                    }
+
+                    return 10
                 }
             }
 
             if self.board[0][index] == self.board[1][index] && self.board[1][index] == self.board[2][index] && self.board[0][index] != '-' {
-                if self.board[1][index] == self.bot && self.bot == 'X' {
-                    return 10
-                } else if self.board[1][index] == self.bot && self.bot == 'O' {
+                if self.bot_maximizing {
+                    if self.board[1][index] == self.bot {
+                        return 10
+                    }
+
                     return -10
-                } else if self.board[1][index] == self.player && self.player == 'X' {
-                    return 10
                 } else {
-                    return -10
+                    if self.board[1][index] == self.bot {
+                        return -10
+                    }
+
+                    return 10
                 }
             }
         }
 
+        // Evaluate Diagonal
+        // +---+---+---+
+        // | X | - | - |
+        // +---+---+---+
+        // | - | X | - |
+        // +---+---+---+
+        // | - | - | X |
+        // +---+---+---+
         if self.board[0][0] == self.board[1][1] && self.board[1][1] == self.board[2][2] && self.board[0][0] != '-' {
-            if self.board[0][0] == self.bot && self.bot == 'X' {
-                return 10
-            } else if self.board[0][0] == self.bot && self.bot == 'O' {
+            if self.bot_maximizing {
+                if self.board[1][1] == self.bot {
+                    return 10
+                }
+
                 return -10
-            } else if self.board[0][0] == self.player && self.player == 'X' {
-                return 10
             } else {
-                return -10
+                if self.board[1][1] == self.bot {
+                    return -10
+                }
+
+                return 10
             }
         }
 
+        // Evaluate Diagonal
+        // +---+---+---+
+        // | - | - | X |
+        // +---+---+---+
+        // | - | X | - |
+        // +---+---+---+
+        // | X | - | - |
+        // +---+---+---+
         if self.board[2][0] == self.board[1][1] && self.board[1][1] == self.board[0][2] && self.board[2][0] != '-' {
-            if self.board[2][0] == self.bot && self.bot == 'X' {
-                return 10
-            } else if self.board[2][0] == self.bot && self.bot == 'O' {
+            if self.bot_maximizing {
+                if self.board[1][1] == self.bot {
+                    return 10
+                }
+
                 return -10
-            } else if self.board[2][0] == self.player && self.player == 'X' {
-                return 10
             } else {
-                return -10
+                if self.board[1][1] == self.bot {
+                    return -10
+                }
+
+                return 10
             }
         }
 
+        // If no open moves, then it's a tie, so return 0, so no score for either.
         if !self.open_moves() {
             return 0
         }
