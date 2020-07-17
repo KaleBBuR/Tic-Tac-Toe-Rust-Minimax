@@ -35,7 +35,6 @@ struct Game {
 
 // Impl of Game
 impl Game {
-    
     // Creates a new game, and returns Game Struct
     pub fn new() -> Game {
         Game {
@@ -164,7 +163,7 @@ impl Game {
         let seperator = "+---+---+---+";
         println!("\n{}", seperator);
         let example_board: Board = vec![
-                                vec!['1', '2', '3'], 
+                                vec!['1', '2', '3'],
                                 vec!['4', '5', '6'],
                                 vec!['7', '8', '9'],
                             ];
@@ -185,7 +184,7 @@ impl Game {
             io::stdin()
                 .read_line(&mut player_move)
                 .expect("\nFailed to read player move.\nTry again!\n");
-            
+
             let player_move: u32 = match player_move.trim().parse() {
                 Ok(num) => num,
                 Err(_) => {
@@ -209,7 +208,7 @@ impl Game {
     }
 
     // This will get the bot move, by using the minimax algorithm!
-    fn get_bot_move(&mut self) { 
+    fn get_bot_move(&mut self) {
         let mut best_row = 0;
         let mut best_col = 0;
         let mut best_val_x = -10000;
@@ -220,29 +219,24 @@ impl Game {
                 for j in 0..3 {
                     if self.board[i][j] == '-' {
                         self.board[i][j] = self.bot;
-                        let move_val = self.minimax(0, true);
-                        self.board[i][j] = '-';
-    
-                        if move_val < best_val_o {
-                            best_row = i;
-                            best_col = j;
-                            best_val_o = move_val;
-                        }
-                    }
-                }
-            }
-        } else {
-            for i in 0..3 {
-                for j in 0..3 {
-                    if self.board[i][j] == '-' {
-                        self.board[i][j] = self.bot;
-                        let move_val = self.minimax(0, false);
-                        self.board[i][j] = '-';
-    
-                        if move_val > best_val_x {
-                            best_row = i;
-                            best_col = j;
-                            best_val_x = move_val;
+                        if self.player == 'X' {
+                            let move_val = self.minimax(0, true);
+                            self.board[i][j] = '-';
+
+                            if move_val < best_val_o {
+                                best_row = i;
+                                best_col = j;
+                                best_val_o = move_val;
+                            }
+                        } else {
+                            let move_val = self.minimax(0, false);
+                            self.board[i][j] = '-';
+
+                            if move_val > best_val_x {
+                                best_row = i;
+                                best_col = j;
+                                best_val_x = move_val;
+                            }
                         }
                     }
                 }
@@ -276,24 +270,24 @@ impl Game {
             }
 
             return max_eval
-        } else {
-            let mut min_eval = 10000;
-            for i in 0..3 {
-                for j in 0..3 {
-                    if self.board[i][j] == '-' {
-                        if self.player == 'X' {
-                            self.board[i][j] = self.bot;
-                        } else {
-                            self.board[i][j] = self.player;
-                        }
-                        min_eval = cmp::min(min_eval, self.minimax(depth+1, !maximizing_player));
-                        self.board[i][j] = '-';
+        }
+
+        let mut min_eval = 10000;
+        for i in 0..3 {
+            for j in 0..3 {
+                if self.board[i][j] == '-' {
+                    if self.player == 'X' {
+                        self.board[i][j] = self.bot;
+                    } else {
+                        self.board[i][j] = self.player;
                     }
+                    min_eval = cmp::min(min_eval, self.minimax(depth+1, !maximizing_player));
+                    self.board[i][j] = '-';
                 }
             }
-
-            return min_eval
         }
+
+        return min_eval
     }
 
     fn evaluate(&self) -> i32 {
@@ -302,34 +296,16 @@ impl Game {
         // It will return a negative or postive 10 based on who is maximizing, and minimizing.
         for index in 0..3 {
             if self.board[index][0] == self.board[index][1] && self.board[index][1] == self.board[index][2] && self.board[index][0] != '-' {
-                if self.bot_maximizing {
-                    if self.board[index][1] == self.bot {
-                        return 10
-                    }
-
-                    return -10
-                } else {
-                    if self.board[index][1] == self.bot {
-                        return -10
-                    }
-
-                    return 10
+                match self.bot_maximizing {
+                    true => if self.board[index][1] == self.bot { return 10 } else { return -10 },
+                    false => if self.board[index][1] == self.bot { return -10 } else { return 10 }
                 }
             }
 
             if self.board[0][index] == self.board[1][index] && self.board[1][index] == self.board[2][index] && self.board[0][index] != '-' {
-                if self.bot_maximizing {
-                    if self.board[1][index] == self.bot {
-                        return 10
-                    }
-
-                    return -10
-                } else {
-                    if self.board[1][index] == self.bot {
-                        return -10
-                    }
-
-                    return 10
+                match self.bot_maximizing {
+                    true => if self.board[1][index] == self.bot { return 10 } else { return -10 },
+                    false => if self.board[1][index] == self.bot { return -10 } else { return 10 }
                 }
             }
         }
@@ -343,18 +319,9 @@ impl Game {
         // | - | - | X |
         // +---+---+---+
         if self.board[0][0] == self.board[1][1] && self.board[1][1] == self.board[2][2] && self.board[0][0] != '-' {
-            if self.bot_maximizing {
-                if self.board[1][1] == self.bot {
-                    return 10
-                }
-
-                return -10
-            } else {
-                if self.board[1][1] == self.bot {
-                    return -10
-                }
-
-                return 10
+            match self.bot_maximizing {
+                true => if self.board[1][1] == self.bot { return 10 } else { return -10 },
+                false => if self.board[1][1] == self.bot { return -10 } else { return 10 }
             }
         }
 
@@ -367,18 +334,9 @@ impl Game {
         // | X | - | - |
         // +---+---+---+
         if self.board[2][0] == self.board[1][1] && self.board[1][1] == self.board[0][2] && self.board[2][0] != '-' {
-            if self.bot_maximizing {
-                if self.board[1][1] == self.bot {
-                    return 10
-                }
-
-                return -10
-            } else {
-                if self.board[1][1] == self.bot {
-                    return -10
-                }
-
-                return 10
+            match self.bot_maximizing {
+                true => if self.board[1][1] == self.bot { return 10 } else { return -10 },
+                false => if self.board[1][1] == self.bot { return -10 } else { return 10 }
             }
         }
 
@@ -393,7 +351,7 @@ impl Game {
     // This will make sure a move is valid
     fn check_move(&self, player_move: u32) -> bool {
         let temp_location = self.get_move(player_move);
-        
+
         match self.board[temp_location.0][temp_location.1] {
             'X' | 'O' => false,
             _ => true,
